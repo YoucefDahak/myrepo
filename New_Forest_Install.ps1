@@ -4,14 +4,14 @@
 Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 Import-Module ADDSDeployment
 Install-ADDSForest `
--CreateDnsDelegation:$false `
+-CreateDnsDelegation:"false" `
 -DatabasePath "C:\Windows\NTDS" `
 -DomainMode "WinThreshold" `
 -DomainName "lab.home.ca" `
 -DomainNetbiosName "LAB" `
 -ForestMode "WinThreshold" `
--InstallDns:$true `
+-InstallDns:"true" `
 -LogPath "C:\Windows\NTDS" `
--NoRebootOnCompletion:$false `
+-NoRebootOnCompletion:"false" `
 -SysvolPath "C:\Windows\SYSVOL" `
--Force:$true
+-Force:"true"
