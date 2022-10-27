@@ -1,73 +1,14 @@
-Configuration Diskinitialization
-{
+    $disks = Get-Disk | Where partitionstyle -eq 'raw' | sort number
 
-    Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
+    $letters = 70..89 | ForEach-Object { [char]$_ }
+    $count = 0
+    $labels = "data1","data2"
 
-
-Script Initialize_Disk
-    {
-        SetScript =
-        {
-            # Start logging the actions 
-            Start-Transcript -Path C:\Temp\Diskinitlog.txt -Append -Force
- 
-            # Move CD-ROM drive to Z:
-            "Moving CD-ROM drive to Z:.."
-            Get-WmiObject -Class Win32_volume -Filter 'DriveType=5' | Select-Object -First 1 | Set-WmiInstance -Arguments @{DriveLetter='Z:'}
-            # Set the parameters 
-            $disks = Get-Disk | Where-Object partitionstyle -eq 'raw' | Sort-Object number
-            $letters = 69..89 | ForEach-Object { [char]$_ }
-            $count = 0
-            $label = "Data"
- 
-            "Formatting disks.."
-            foreach ($disk in $disks) {
-            $driveLetter = $letters[$count].ToString()
-           $disk |
-            Initialize-Disk -PartitionStyle MBR -PassThru |
-            New-Partition -UseMaximumSize -DriveLetter $driveLetter |
-            Format-Volume -FileSystem NTFS -NewFileSystemLabel "$label.$count" -Confirm:$false -Force
-            "$label.$count"
-            $count++
-        }
-                                                            
- 
-            
- 
-                Stop-Transcript
-        }
- 
- 
-        
-    TestScript =
-    {
-            try 
-                {
-                    Write-Verbose "Testing if any Raw disks are left"
-                    # $Validate = New-Object -ComObject 'AgentConfigManager.MgmtSvcCfg' -ErrorAction SilentlyContinue
-                    $Validate = Get-Disk | Where-Object partitionstyle -eq 'raw'
-                }
-                catch 
-                {
-                    $ErrorMessage = $_.Exception.Message
-                    $ErrorMessage
-                }
- 
-            If (!($Validate -eq $null)) 
-            {
-                   Write-Verbose "Disks are not initialized"     
-                    return $False 
-            }
-                Else
-            {
-                    Write-Verbose "Disks are initialized"
-                    Return $True
-                
-            }
+    foreach ($disk in $disks) {
+        $driveLetter = $letters[$count].ToString()
+        $disk |
+        Initialize-Disk -PartitionStyle MBR -PassThru |
+        New-Partition -UseMaximumSize -DriveLetter $driveLetter |
+        Format-Volume -FileSystem NTFS -NewFileSystemLabel $labels[$count] -Confirm:$false -Force
+	$count++
     }
- 
- 
-        GetScript = { @{ Result = Get-Disk | Where-Object partitionstyle -eq 'raw' } }
-                
-    }
-}
